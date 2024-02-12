@@ -28,7 +28,7 @@ namespace IdentityService.Api.Controllers
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequestDto loginRequestDto)
         {
-            var result = _authService.Login(loginRequestDto);
+            var result =  _authService.Login(loginRequestDto);
 
             if (result.IsSuccess)
                 return Ok(result);
@@ -38,9 +38,9 @@ namespace IdentityService.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public IActionResult Register([FromBody] RegisterRequestDto registerRequestDto)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
-            var result = _authService.Register(registerRequestDto);
+            var result = await _authService.Register(registerRequestDto);
 
             if (result.IsSuccess)
                 return Ok(result);

@@ -4,24 +4,57 @@ using IdentityService.Api.Core.Domain.Base;
 using IdentityService.Api.Infrastructure.Data;
 using IdentityService.Api.Infrastructure.Extentions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Console;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace IdentityService.Api.Core.Application.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(IUserRepository userRepository)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _configuration = configuration;
         }
 
         public ResultModel<LoginResponseDto> Login([FromBody] LoginRequestDto loginRequestDto)
         {
-            throw new NotImplementedException();
+            var user = _userRepository.GetUserByUsernamePassword(loginRequestDto);
+
+            if (!user.IsSuccess)
+                return new ResultModel<LoginResponseDto>() { IsSuccess = user.IsSuccess, ErrorText = user.ErrorText };
+
+
+            var claims = new Claim[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, loginRequestDto.UserName),
+                new Claim(ClaimTypes.Name, user.Result.FirstName+user.Result.LastName),
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt")["SecretKey"])); ;
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expiry = DateTime.Now.AddDays(2);
+
+            var token = new JwtSecurityToken(claims: claims, expires: expiry, signingCredentials: creds, notBefore: DateTime.Now);
+
+            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            var response = new LoginResponseDto()
+            {
+                Token = encodedJwt,
+                UserName = loginRequestDto.UserName
+            };
+
+            return new ResultModel<LoginResponseDto>() { Result = response, IsSuccess = true };
         }
 
-        public ResultModel<bool> Register([FromBody] RegisterRequestDto registerRequestDto)
+        public async Task<ResultModel<bool>> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
             var isExist = _userRepository.IsExist(registerRequestDto.UserName);
             if (!isExist.IsSuccess)
@@ -40,7 +73,7 @@ namespace IdentityService.Api.Core.Application.Services
                 Password = registerRequestDto.Password
             };
 
-            _userRepository.AddAsync(user);
+            await _userRepository.AddAsync(user);
 
             return new ResultModel<bool> { IsSuccess = true, Result = true };
         }

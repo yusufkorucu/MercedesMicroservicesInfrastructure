@@ -7,6 +7,6 @@ namespace IdentityService.Api.Core.Application.Services
     public interface IAuthService
     {
         ResultModel<LoginResponseDto> Login([FromBody] LoginRequestDto loginRequestDto);
-        ResultModel<bool> Register([FromBody] RegisterRequestDto registerRequestDto);
+        Task<ResultModel<bool>> Register([FromBody] RegisterRequestDto registerRequestDto);
     }
 }

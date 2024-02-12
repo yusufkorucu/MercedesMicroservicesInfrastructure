@@ -19,7 +19,6 @@ builder.Services.AddDbContext<IdentityApiDbContext>(opt =>
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
