@@ -1,6 +1,10 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using IdentityService.Api.Core.Application.Repository;
 using IdentityService.Api.Core.Application.Services;
+using IdentityService.Api.Core.Domain;
 using IdentityService.Api.Infrastructure.Context;
+using IdentityService.Api.Infrastructure.Validators;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +22,13 @@ builder.Services.AddDbContext<IdentityApiDbContext>(opt =>
 
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IAuthService, AuthService>();
+
+#region FluentValidation
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
+
+#endregion
 
 var app = builder.Build();
 
