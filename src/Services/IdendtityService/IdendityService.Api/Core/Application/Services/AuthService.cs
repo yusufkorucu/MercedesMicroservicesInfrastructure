@@ -3,9 +3,10 @@ using IdentityService.Api.Core.Domain;
 using IdentityService.Api.Core.Domain.Base;
 using IdentityService.Api.Infrastructure.Data;
 using IdentityService.Api.Infrastructure.Extentions;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.IdentityModel.Tokens;
+using RabbitMQ.Shared.Events.User;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,11 +17,13 @@ namespace IdentityService.Api.Core.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration, IPublishEndpoint publishEndpoint)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _publishEndpoint = publishEndpoint;
         }
 
         public ResultModel<LoginResponseDto> Login([FromBody] LoginRequestDto loginRequestDto)
@@ -74,7 +77,10 @@ namespace IdentityService.Api.Core.Application.Services
             };
 
             await _userRepository.AddAsync(user);
-
+            await _publishEndpoint.Publish(new UserCreatedEvent
+            {
+                Email = user.Email
+            });
             return new ResultModel<bool> { IsSuccess = true, Result = true };
         }
     }

@@ -1,8 +1,7 @@
-using IdentityService.Api.Core.Application.Repository;
-using IdentityService.Api.Core.Application.Services;
-using IdentityService.Api.Infrastructure.Context;
+using EmailService.Api.Consumer.Email;
+using EmailService.Api.Core.Application.Services;
+using RabbitMQ.Shared;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,23 +11,19 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<IdentityApiDbContext>(opt =>
-{
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("SQLServer"));
-});
 
-builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IEmailService, EmailService.Api.Core.Application.Services.EmailService>();
 
 builder.Services.AddMassTransit(conf =>
 {
+    conf.AddConsumer<EmailSenderEventConsumer>();
 
     conf.UsingRabbitMq((context, _conf) =>
     {
         _conf.Host(builder.Configuration["RabbitMQ"]);
+        _conf.ReceiveEndpoint(RabbitMQSettings.Email_EmailSenderEventQueue, e => e.ConfigureConsumer<EmailSenderEventConsumer>(context));
 
-
+        
     });
 });
 

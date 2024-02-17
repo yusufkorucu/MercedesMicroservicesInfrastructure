@@ -8,10 +8,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="MassTransit.RabbitMQ" Version="8.1.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Shared\RabbitMQ.Shared\RabbitMQ.Shared\RabbitMQ.Shared.csproj" />
 	</ItemGroup>
 
 </Project>
