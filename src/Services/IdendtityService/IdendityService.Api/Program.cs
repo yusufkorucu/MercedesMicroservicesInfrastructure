@@ -1,6 +1,10 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using IdentityService.Api.Core.Application.Repository;
 using IdentityService.Api.Core.Application.Services;
+using IdentityService.Api.Core.Domain;
 using IdentityService.Api.Infrastructure.Context;
+using IdentityService.Api.Infrastructure.Validators;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +35,13 @@ builder.Services.AddMassTransit(conf =>
 
     });
 });
+
+#region FluentValidation
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
+
+#endregion
 
 var app = builder.Build();
 
