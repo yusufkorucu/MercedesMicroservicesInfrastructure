@@ -2,6 +2,7 @@ using EmailService.Api.Consumer.Email;
 using EmailService.Api.Core.Application.Services;
 using RabbitMQ.Shared;
 using MassTransit;
+using EmailService.Api.Consumer.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,13 +18,15 @@ builder.Services.AddScoped<IEmailService, EmailService.Api.Core.Application.Serv
 builder.Services.AddMassTransit(conf =>
 {
     conf.AddConsumer<EmailSenderEventConsumer>();
+    conf.AddConsumer<UserCreatedEventConsumer>();
 
     conf.UsingRabbitMq((context, _conf) =>
     {
         _conf.Host(builder.Configuration["RabbitMQ"]);
         _conf.ReceiveEndpoint(RabbitMQSettings.Email_EmailSenderEventQueue, e => e.ConfigureConsumer<EmailSenderEventConsumer>(context));
-
+        _conf.ReceiveEndpoint(RabbitMQSettings.User_UserCreatedEventQueue, e => e.ConfigureConsumer<UserCreatedEventConsumer>(context));
         
+
     });
 });
 

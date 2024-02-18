@@ -7,6 +7,8 @@ using IdentityService.Api.Infrastructure.Context;
 using IdentityService.Api.Infrastructure.Validators;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Shared;
+using RabbitMQ.Shared.Events.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +33,11 @@ builder.Services.AddMassTransit(conf =>
     conf.UsingRabbitMq((context, _conf) =>
     {
         _conf.Host(builder.Configuration["RabbitMQ"]);
-
+        _conf.Publish<UserCreatedEvent>(p =>
+        {
+            p.AutoDelete = false;
+            p.Durable = true;
+        });
 
     });
 });
